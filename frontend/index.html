@@ -1,0 +1,2916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EarWitness</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%234263eb'/><path d='M50 20c-5 0-9 4-9 9v22c0 5 4 9 9 9s9-4 9-9V29c0-5-4-9-9-9z' fill='white'/><path d='M70 47v4c0 11-9 20-20 20s-20-9-20-20v-4h-6v4c0 13.5 10 24.7 23 26.7V84h-10v6h26v-6H53v-6.3c13-2 23-13.2 23-26.7v-4h-6z' fill='white'/></svg>">
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --border: #dee2e6;
+    --text: #212529;
+    --text-muted: #6c757d;
+    --primary: #4263eb;
+    --primary-hover: #3b5bdb;
+    --danger: #e03131;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* Header */
+  .header {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .header h1 { font-size: 18px; font-weight: 600; white-space: nowrap; }
+  .header-info { font-size: 13px; color: var(--text-muted); margin-left: auto; white-space: nowrap; display: flex; align-items: center; gap: 0; }
+  .header-info-name {
+    cursor: pointer;
+    border-bottom: 1px dashed transparent;
+    transition: border-color 0.15s;
+  }
+  .header-info-name:hover { border-bottom-color: var(--text-muted); }
+  .header-info-duration { pointer-events: none; }
+  .header-info-input {
+    font-size: 13px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--primary);
+    border-radius: 4px;
+    padding: 1px 6px;
+    outline: none;
+    font-family: inherit;
+  }
+
+  /* Header action icons */
+  .header-actions {
+    display: none;
+    align-items: center;
+    gap: 2px;
+  }
+  .header-actions.visible { display: flex; }
+
+  .header-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: background 0.15s, color 0.15s;
+    position: relative;
+  }
+  .header-action-btn:hover { background: #f1f3f5; color: var(--text); }
+  .header-action-btn.active { background: #e7f0ff; color: var(--primary); }
+  .header-action-btn svg { width: 18px; height: 18px; }
+  .header-action-btn[data-save] { color: var(--primary); }
+  .header-action-btn[data-save]:hover { background: #e7f0ff; }
+
+  .header-separator {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    margin: 0 6px;
+  }
+
+  /* Upload area */
+  .upload-section { margin-top: 80px; text-align: center; }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 60px 40px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: var(--surface);
+  }
+
+  .drop-zone.dragover {
+    border-color: var(--primary);
+    background: #e7f0ff;
+  }
+
+  .drop-zone h2 { font-size: 20px; margin-bottom: 8px; }
+  .drop-zone p { color: var(--text-muted); font-size: 14px; }
+
+  .drop-zone .browse-btn {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 10px 24px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .drop-zone .browse-btn:hover { background: var(--primary-hover); }
+  #file-input { display: none; }
+
+  .engine-selector {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .engine-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--text-muted);
+  }
+
+  .engine-option input[type="radio"] { accent-color: var(--primary); }
+  .engine-option small { color: var(--text-muted); }
+
+  /* Progress */
+  .progress-section {
+    display: none;
+    margin-top: 80px;
+    text-align: center;
+  }
+
+  .progress-section .status-text { font-size: 16px; margin-bottom: 12px; }
+
+  .progress-bar-container {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: var(--primary);
+    width: 0%;
+    border-radius: 3px;
+    animation: indeterminate 1.5s ease-in-out infinite;
+  }
+
+  @keyframes indeterminate {
+    0% { width: 0%; margin-left: 0%; }
+    50% { width: 40%; margin-left: 30%; }
+    100% { width: 0%; margin-left: 100%; }
+  }
+
+  .file-info { margin-top: 12px; font-size: 13px; color: var(--text-muted); }
+
+  .cancel-transcription-btn {
+    margin-top: 20px;
+    padding: 8px 24px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .cancel-transcription-btn:hover {
+    color: var(--danger);
+    border-color: var(--danger);
+  }
+
+  /* Error */
+  .error-message {
+    display: none;
+    margin-top: 20px;
+    padding: 16px;
+    background: #fff5f5;
+    border: 1px solid #ffc9c9;
+    border-radius: 8px;
+    color: var(--danger);
+    text-align: center;
+  }
+
+  /* Transcript editor */
+  .editor-section {
+    display: none;
+    margin-top: 20px;
+    padding-bottom: 160px;
+  }
+
+  /* (editor toolbar moved to header icons) */
+
+  /* Utterance block */
+  .utterance-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 8px;
+    border-left: 4px solid var(--primary);
+  }
+
+  .utterance-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .speaker-select {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--surface);
+    cursor: pointer;
+  }
+
+  .utterance-timestamp {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Utterance text area — view mode (word spans) */
+  .utterance-text {
+    font-size: 15px;
+    line-height: 1.7;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    min-height: 1.7em;
+    position: relative;
+  }
+
+  .utterance-text:hover {
+    border-color: #e9ecef;
+  }
+
+  /* Edit mode */
+  .utterance-text.editing {
+    outline: none;
+    border-color: var(--primary);
+    background: #f8f9ff;
+    white-space: pre-wrap;
+    cursor: text;
+  }
+
+  /* Boundary controls between adjacent blocks */
+  .boundary-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: -4px 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .shuttle-btn {
+    font-size: 12px;
+    padding: 1px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    cursor: pointer;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .shuttle-btn:hover { background: #f1f3f5; color: var(--text); }
+
+  .merge-btn {
+    font-size: 12px;
+    padding: 2px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    cursor: pointer;
+    color: var(--text-muted);
+  }
+
+  .merge-btn:hover { background: #f1f3f5; color: var(--text); }
+
+  /* Split button in utterance header */
+  .split-btn {
+    font-size: 12px;
+    padding: 2px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    cursor: pointer;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  .split-btn:hover { background: #f1f3f5; color: var(--text); }
+
+  /* Export dialog */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.visible { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 32px;
+    width: 480px;
+    max-width: 90vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  }
+
+  .modal h2 { margin-bottom: 20px; font-size: 18px; }
+
+  .modal label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-muted);
+  }
+
+  .modal input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .modal input[type="text"]:focus { outline: none; border-color: var(--primary); }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+
+  .modal-actions button {
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .modal-actions button.primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  /* Export confirmation */
+  .export-confirmation {
+    display: none;
+    margin-top: 20px;
+    padding: 16px;
+    background: #ebfbee;
+    border: 1px solid #b2f2bb;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .export-confirmation .file-path {
+    font-family: 'SF Mono', Monaco, Menlo, monospace;
+    font-size: 13px;
+    margin-top: 8px;
+    color: var(--text-muted);
+  }
+
+  /* Speaker rename bar */
+  .speaker-rename-bar {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .speaker-rename-bar h3 { font-size: 14px; margin-bottom: 12px; color: var(--text-muted); }
+
+  .speaker-rename-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .speaker-rename-row .label {
+    font-size: 13px;
+    color: var(--text-muted);
+    width: 100px;
+    text-align: right;
+  }
+
+  .speaker-rename-row input {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 14px;
+    width: 200px;
+  }
+
+  .speaker-color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  /* Audio player bar */
+  .audio-player-bar {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 10px 20px;
+    z-index: 150;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+  }
+
+  .audio-player-bar.visible { display: flex; }
+
+  .player-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .player-btn:hover { background: var(--primary-hover); }
+
+  .player-nav-btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+  }
+
+  .player-nav-btn:hover { background: #f1f3f5; color: var(--text); }
+
+  .player-time {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    min-width: 48px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .player-seek {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .player-seek::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+  }
+
+  .player-speed {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13px;
+    background: var(--surface);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* Play hint on utterance header */
+  .block-play-hint {
+    font-size: 10px;
+    color: transparent;
+    transition: color 0.15s;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .utterance-block:hover .block-play-hint {
+    color: var(--text-muted);
+  }
+
+  /* Currently playing utterance highlight */
+  .utterance-block.playing {
+    background: #f0f4ff;
+    box-shadow: inset 0 0 0 1px rgba(66, 99, 235, 0.25);
+  }
+
+  .utterance-block.playing .block-play-hint {
+    color: var(--primary);
+  }
+
+  /* Clickable timestamp */
+  .utterance-timestamp.clickable {
+    cursor: pointer;
+  }
+
+  .utterance-timestamp.clickable:hover {
+    color: var(--primary);
+  }
+
+  /* Projects section */
+  .projects-section {
+    margin-top: 40px;
+    text-align: left;
+  }
+
+  .projects-section h3 {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  .project-card {
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .project-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(66, 99, 235, 0.1);
+  }
+
+  .project-card-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .project-card-name {
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .project-card-meta {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .project-card-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-left: 12px;
+  }
+
+  .project-card-actions button {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+
+  .project-card-actions .project-rename-btn:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: #f0f0ff;
+  }
+
+  .project-card-actions .project-delete-btn:hover {
+    color: var(--danger);
+    border-color: var(--danger);
+    background: #fff5f5;
+  }
+
+  /* Save toast */
+  .save-toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #2f9e44;
+    color: white;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 300;
+  }
+
+  .save-toast.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Search & Replace bar */
+  .search-bar {
+    display: none;
+    position: sticky;
+    top: 53px;
+    z-index: 120;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .search-bar.visible { display: block; }
+
+  .search-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search-bar-row + .search-bar-row { margin-top: 8px; }
+
+  .search-bar input[type="text"] {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 14px;
+    flex: 1;
+    min-width: 0;
+  }
+  .search-bar input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  .search-count {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  .search-bar button {
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .search-bar button:hover { background: #f1f3f5; }
+  .search-bar button.primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  .search-bar button.primary:hover { background: var(--primary-hover); }
+
+  .search-close-btn {
+    border: none !important;
+    background: none !important;
+    font-size: 18px !important;
+    padding: 2px 6px !important;
+    color: var(--text-muted);
+  }
+  .search-close-btn:hover { color: var(--text) !important; background: none !important; }
+
+  /* Search match highlights */
+  .word.search-match {
+    background: #fff3bf;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .word.search-match-current {
+    background: #ffa94d;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+
+  /* Utterance selection for clip export */
+  .utterance-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin: 0;
+  }
+
+  .utterance-block.selected {
+    background: #f0f0ff;
+  }
+
+  .clip-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--primary);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    line-height: 1;
+  }
+
+  /* Settings modal */
+  .settings-field { margin-bottom: 16px; }
+  .settings-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .settings-field select,
+  .settings-field input[type="password"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--surface);
+    box-sizing: border-box;
+  }
+  .settings-field select:focus,
+  .settings-field input[type="password"]:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  .settings-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .settings-row input[type="text"] { flex: 1; margin-bottom: 0; }
+  #settings-btn { flex-shrink: 0; margin-left: 8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>EarWitness</h1>
+
+  <div class="header-actions" id="header-actions">
+    <!-- Navigation -->
+    <button class="header-action-btn" id="home-btn" title="Home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10"/></svg>
+    </button>
+
+    <div class="header-separator"></div>
+
+    <!-- Search & Replace -->
+    <button class="header-action-btn" id="search-icon-btn" title="Search (⌘F)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    </button>
+    <button class="header-action-btn" id="replace-icon-btn" title="Find &amp; Replace (⌘H)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+    </button>
+
+    <div class="header-separator"></div>
+
+    <!-- Project actions -->
+    <button class="header-action-btn" id="save-btn" data-save title="Save project" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    </button>
+    <button class="header-action-btn" id="export-btn" title="Export transcript">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </button>
+    <button class="header-action-btn" id="clip-export-btn" title="Export audio clip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="3" y2="12"/><line x1="6" y1="8" x2="6" y2="16"/><line x1="9" y1="5" x2="9" y2="19"/><line x1="12" y1="9" x2="12" y2="15"/><line x1="15" y1="7" x2="15" y2="17"/><polyline points="20 9 23 12 20 15"/><line x1="18" y1="12" x2="23" y2="12"/></svg>
+    </button>
+    <button class="header-action-btn" id="new-btn" title="New transcription">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+    </button>
+  </div>
+
+  <div class="header-info" id="header-info"></div>
+  <button class="header-action-btn" id="settings-btn" title="Settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+  </button>
+</div>
+
+<div class="container">
+
+  <!-- Upload -->
+  <div class="upload-section" id="upload-section">
+    <div class="drop-zone" id="drop-zone">
+      <h2>Upload Audio File</h2>
+      <p>Drag and drop an audio or video file here</p>
+      <button class="browse-btn" id="browse-btn">Browse Files</button>
+    </div>
+    <div class="engine-selector">
+      <label class="engine-option">
+        <input type="radio" name="engine" value="local" checked>
+        <span>Local <small>(offline, free)</small></span>
+      </label>
+      <label class="engine-option">
+        <input type="radio" name="engine" value="assemblyai">
+        <span>AssemblyAI <small>(cloud, best quality)</small></span>
+      </label>
+    </div>
+    <input type="file" id="file-input" accept=".m4a,.mp3,.wav,.flac,.ogg,.aac,.wma,.mp4,.mov,.webm,.mkv">
+    <div class="error-message" id="upload-error"></div>
+
+    <!-- Recent Projects -->
+    <div class="projects-section" id="projects-section" style="display:none;">
+      <h3>Recent Projects</h3>
+      <div id="projects-list"></div>
+    </div>
+  </div>
+
+  <!-- Processing -->
+  <div class="progress-section" id="progress-section">
+    <div class="status-text">Transcribing audio...</div>
+    <div class="progress-bar-container">
+      <div class="progress-bar"></div>
+    </div>
+    <div class="file-info" id="progress-file-info"></div>
+    <p style="margin-top:16px;font-size:13px;color:var(--text-muted);">This may take 1–3 minutes for longer recordings.</p>
+    <button class="cancel-transcription-btn" id="cancel-transcription-btn" style="display:none;">Cancel</button>
+  </div>
+
+  <!-- Editor -->
+  <div class="editor-section" id="editor-section">
+    <div class="speaker-rename-bar" id="speaker-rename-bar">
+      <h3>Speaker Names</h3>
+      <div id="speaker-rename-list"></div>
+    </div>
+
+    <!-- Search & Replace bar -->
+    <div class="search-bar" id="search-bar">
+      <div class="search-bar-row">
+        <input type="text" id="search-input" placeholder="Search transcript..." autocomplete="off">
+        <span class="search-count" id="search-count"></span>
+        <button id="search-prev-btn" title="Previous match (Shift+Enter)">&#9650;</button>
+        <button id="search-next-btn" title="Next match (Enter)">&#9660;</button>
+        <button class="search-close-btn" id="search-close-btn" title="Close (Escape)">&times;</button>
+      </div>
+      <div class="search-bar-row" id="replace-row" style="display:none;">
+        <input type="text" id="replace-input" placeholder="Replace with..." autocomplete="off">
+        <button id="replace-btn">Replace</button>
+        <button class="primary" id="replace-all-btn">Replace All</button>
+      </div>
+    </div>
+
+    <div id="utterance-list"></div>
+
+    <div class="export-confirmation" id="export-confirmation">
+      <strong>Transcript exported successfully.</strong>
+      <div class="file-path" id="export-path"></div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div class="modal-overlay" id="export-modal">
+    <div class="modal">
+      <h2>Export Transcript</h2>
+      <label for="export-filename">Filename</label>
+      <input type="text" id="export-filename" placeholder="YYYY-MM-DD Topic of Meeting">
+      <label for="export-dir">Output folder</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="export-dir" style="flex:1;margin-bottom:0;">
+        <button id="pick-folder-btn" style="padding:10px 14px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;font-size:13px;white-space:nowrap;">Browse...</button>
+      </div>
+      <div style="height:16px;"></div>
+      <div class="modal-actions">
+        <button id="export-cancel">Cancel</button>
+        <button class="primary" id="export-confirm">Export</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clip Export Modal -->
+  <div class="modal-overlay" id="clip-export-modal">
+    <div class="modal">
+      <h2 id="clip-export-title">Export audio clip</h2>
+      <div id="clip-export-form">
+        <div id="clip-export-summary" style="font-size:13px;color:var(--text-muted);margin-bottom:16px;max-height:120px;overflow-y:auto;"></div>
+        <label for="clip-export-filename">Filename</label>
+        <input type="text" id="clip-export-filename" placeholder="clip">
+        <label for="clip-export-dir">Output folder</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="clip-export-dir" style="flex:1;margin-bottom:0;">
+          <button id="clip-pick-folder-btn" style="padding:10px 14px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;font-size:13px;white-space:nowrap;">Browse...</button>
+        </div>
+        <div style="height:16px;"></div>
+        <div class="modal-actions">
+          <button id="clip-export-cancel">Cancel</button>
+          <button class="primary" id="clip-export-confirm">Export</button>
+        </div>
+      </div>
+      <div id="clip-export-result" style="display:none;">
+        <div style="padding:16px;background:#ebfbee;border:1px solid #b2f2bb;border-radius:8px;text-align:center;">
+          <strong>Clip exported successfully.</strong>
+          <div id="clip-export-path" style="font-family:'SF Mono',Monaco,Menlo,monospace;font-size:13px;margin-top:8px;color:var(--text-muted);word-break:break-all;"></div>
+        </div>
+        <div style="height:16px;"></div>
+        <div class="modal-actions">
+          <button class="primary" id="clip-export-ok">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal" style="width:500px;">
+      <h2>Settings</h2>
+
+      <div class="settings-field">
+        <label for="settings-export-folder">Default export folder</label>
+        <div class="settings-row">
+          <input type="text" id="settings-export-folder">
+          <button id="settings-pick-folder-btn" style="padding:10px 14px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;font-size:13px;white-space:nowrap;">Browse...</button>
+        </div>
+      </div>
+
+      <div class="settings-field">
+        <label for="settings-default-engine">Default transcription engine</label>
+        <select id="settings-default-engine">
+          <option value="local">Local (offline, free)</option>
+          <option value="assemblyai">AssemblyAI (cloud, best quality)</option>
+        </select>
+      </div>
+
+      <div class="settings-field">
+        <label for="settings-assemblyai-key">AssemblyAI API key</label>
+        <input type="password" id="settings-assemblyai-key" placeholder="Enter your API key">
+      </div>
+
+      <div class="settings-field">
+        <label for="settings-assemblyai-model">AssemblyAI model</label>
+        <select id="settings-assemblyai-model">
+          <option value="universal-3-pro">Universal-3 Pro (default)</option>
+          <option value="universal-2">Universal-2 (cheaper)</option>
+        </select>
+      </div>
+
+      <div class="settings-field">
+        <label for="settings-whisper-model">Local Whisper model (MLX)</label>
+        <select id="settings-whisper-model"></select>
+      </div>
+
+      <div class="modal-actions">
+        <button id="settings-cancel">Cancel</button>
+        <button class="primary" id="settings-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Save toast -->
+<div class="save-toast" id="save-toast">Project saved</div>
+
+<!-- Audio Player Bar -->
+<div class="audio-player-bar" id="audio-player-bar">
+  <button class="player-nav-btn" id="prev-segment-btn" title="Previous segment">&#9198;</button>
+  <button class="player-btn" id="play-pause-btn" title="Play/Pause (Space)">&#9654;</button>
+  <button class="player-nav-btn" id="next-segment-btn" title="Next segment">&#9197;</button>
+  <span class="player-time" id="player-current-time">0:00</span>
+  <input type="range" class="player-seek" id="player-seek" min="0" max="100" value="0" step="0.1">
+  <span class="player-time" id="player-duration">0:00</span>
+  <select class="player-speed" id="player-speed" title="Playback speed">
+    <option value="0.5">0.5x</option>
+    <option value="0.75">0.75x</option>
+    <option value="1" selected>1x</option>
+    <option value="1.25">1.25x</option>
+    <option value="1.5">1.5x</option>
+    <option value="2">2x</option>
+  </select>
+</div>
+
+<script>
+(function() {
+  // ---- State ----
+  let transcript = null; // { utterances, speakers, duration_ms }
+  let speakerNames = {};  // raw label -> display name
+  let uploadedFileName = ''; // original audio filename (without extension)
+  let currentProjectId = null; // active project ID (null = no project)
+  let selectedSegments = new Set(); // utterance indices selected for clip export
+  let activeTranscriptionController = null; // AbortController for in-flight transcription
+  let _userCancelled = false; // flag to distinguish user cancel from timeout abort
+
+  const SPEAKER_COLORS = [
+    '#4263eb', '#e8590c', '#2f9e44', '#9c36b5', '#e03131',
+    '#1971c2', '#f08c00', '#0c8599', '#862e9c', '#5c940d'
+  ];
+
+  // ---- DOM refs ----
+  const uploadSection = document.getElementById('upload-section');
+  const progressSection = document.getElementById('progress-section');
+  const editorSection = document.getElementById('editor-section');
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const browseBtn = document.getElementById('browse-btn');
+  const uploadError = document.getElementById('upload-error');
+  const progressFileInfo = document.getElementById('progress-file-info');
+  const headerInfo = document.getElementById('header-info');
+  const utteranceList = document.getElementById('utterance-list');
+  const speakerRenameBar = document.getElementById('speaker-rename-bar');
+  const speakerRenameList = document.getElementById('speaker-rename-list');
+  const exportBtn = document.getElementById('export-btn');
+  const newBtn = document.getElementById('new-btn');
+  const exportModal = document.getElementById('export-modal');
+  const exportFilename = document.getElementById('export-filename');
+  const exportDir = document.getElementById('export-dir');
+  const exportCancel = document.getElementById('export-cancel');
+  const exportConfirm = document.getElementById('export-confirm');
+  const exportConfirmation = document.getElementById('export-confirmation');
+  const exportPath = document.getElementById('export-path');
+  const audioPlayerBar = document.getElementById('audio-player-bar');
+  const playPauseBtn = document.getElementById('play-pause-btn');
+  const playerCurrentTime = document.getElementById('player-current-time');
+  const playerSeek = document.getElementById('player-seek');
+  const playerDurationEl = document.getElementById('player-duration');
+  const playerSpeed = document.getElementById('player-speed');
+  const projectsSection = document.getElementById('projects-section');
+  const projectsList = document.getElementById('projects-list');
+  const saveBtn = document.getElementById('save-btn');
+  const saveToast = document.getElementById('save-toast');
+  const homeBtn = document.getElementById('home-btn');
+  const prevSegmentBtn = document.getElementById('prev-segment-btn');
+  const nextSegmentBtn = document.getElementById('next-segment-btn');
+  const headerActions = document.getElementById('header-actions');
+  const searchIconBtn = document.getElementById('search-icon-btn');
+  const replaceIconBtn = document.getElementById('replace-icon-btn');
+  const clipExportBtn = document.getElementById('clip-export-btn');
+  const clipExportModal = document.getElementById('clip-export-modal');
+  const clipExportTitle = document.getElementById('clip-export-title');
+  const clipExportSummary = document.getElementById('clip-export-summary');
+  const clipExportFilename = document.getElementById('clip-export-filename');
+  const clipExportDirInput = document.getElementById('clip-export-dir');
+  const clipPickFolderBtn = document.getElementById('clip-pick-folder-btn');
+  const clipExportCancel = document.getElementById('clip-export-cancel');
+  const clipExportConfirm = document.getElementById('clip-export-confirm');
+  const clipExportForm = document.getElementById('clip-export-form');
+  const clipExportResult = document.getElementById('clip-export-result');
+  const clipExportPath = document.getElementById('clip-export-path');
+  const clipExportOk = document.getElementById('clip-export-ok');
+
+  // Audio player state
+  let audioElement = null;
+  let isSeeking = false;
+
+  // ---- Helpers ----
+  function formatTimestamp(ms) {
+    const totalSec = Math.floor(ms / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    return `${m}:${String(s).padStart(2,'0')}`;
+  }
+
+  function speakerColor(speaker) {
+    if (!transcript) return SPEAKER_COLORS[0];
+    const idx = transcript.speakers.indexOf(speaker);
+    return SPEAKER_COLORS[idx % SPEAKER_COLORS.length];
+  }
+
+  function showSection(section) {
+    uploadSection.style.display = 'none';
+    progressSection.style.display = 'none';
+    editorSection.style.display = 'none';
+    section.style.display = 'block';
+
+    // Show header action icons only in editor view
+    if (section === editorSection) {
+      headerActions.classList.add('visible');
+    } else {
+      headerActions.classList.remove('visible');
+      headerInfo.textContent = '';
+    }
+
+    // Show projects list and apply default engine on upload screen
+    if (section === uploadSection) {
+      loadProjectsList();
+      if (typeof applyDefaultEngine === 'function') applyDefaultEngine();
+    }
+  }
+
+  // ---- Upload ----
+  browseBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput.click();
+  });
+
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('dragover');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) handleFile(files[0]);
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) handleFile(fileInput.files[0]);
+  });
+
+  // Parse an SSE stream from the local engine, updating the status text
+  // with progress events and returning the final JSON result.
+  // Throws 'CANCELLED' sentinel if the server sends a cancelled event.
+  async function readSSEStream(response, statusEl) {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let result = null;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      // Process complete SSE messages (separated by double newline)
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop(); // keep incomplete part
+
+      for (const part of parts) {
+        if (!part.trim()) continue;
+        let eventType = 'message';
+        let data = '';
+        for (const line of part.split('\n')) {
+          if (line.startsWith('event: ')) eventType = line.slice(7).trim();
+          else if (line.startsWith('data: ')) data = line.slice(6);
+        }
+
+        if (eventType === 'progress') {
+          statusEl.textContent = data;
+        } else if (eventType === 'result') {
+          result = JSON.parse(data);
+        } else if (eventType === 'error') {
+          throw new Error(data);
+        } else if (eventType === 'cancelled') {
+          throw new Error('CANCELLED');
+        }
+      }
+    }
+
+    if (!result) throw new Error('No result received from local engine.');
+    return result;
+  }
+
+  async function handleFile(file) {
+    uploadError.style.display = 'none';
+
+    const supportedExts = ['.m4a','.mp3','.wav','.flac','.ogg','.aac','.wma','.mp4','.mov','.webm','.mkv'];
+    const fileExt = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+    if (!supportedExts.includes(fileExt)) {
+      uploadError.textContent = 'Unsupported file format. Supported: ' + supportedExts.join(', ');
+      uploadError.style.display = 'block';
+      return;
+    }
+
+    // Store filename without extension for export default
+    uploadedFileName = file.name.replace(/\.[^.]+$/, '');
+
+    const engine = document.querySelector('input[name="engine"]:checked').value;
+
+    // Update progress messaging based on engine
+    const statusText = progressSection.querySelector('.status-text');
+    const hintEl = progressSection.querySelector('p');
+    if (engine === 'local') {
+      statusText.textContent = 'Transcribing locally\u2026';
+      hintEl.textContent = 'Local processing is slower than cloud. First run also downloads ~3GB of models.';
+    } else {
+      statusText.textContent = 'Transcribing audio\u2026';
+      hintEl.textContent = 'This may take 1\u20133 minutes for longer recordings.';
+    }
+
+    progressFileInfo.textContent = file.name + ' (' + (file.size / (1024*1024)).toFixed(1) + ' MB)';
+    const cancelBtn = document.getElementById('cancel-transcription-btn');
+    cancelBtn.style.display = engine === 'local' ? '' : 'none';
+    cancelBtn.disabled = false;
+    cancelBtn.textContent = 'Cancel';
+    showSection(progressSection);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('engine', engine);
+
+    // Long timeout for local engine (model download + processing)
+    const controller = new AbortController();
+    activeTranscriptionController = controller;
+    const timeoutMs = engine === 'local' ? 30 * 60 * 1000 : 10 * 60 * 1000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch('/api/transcribe', {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ detail: 'Unknown error' }));
+        throw new Error(err.detail || `Server error (${response.status})`);
+      }
+
+      let result;
+
+      if (engine === 'local') {
+        // Read SSE stream for progress updates
+        result = await readSSEStream(response, statusText);
+      } else {
+        result = await response.json();
+      }
+
+      transcript = result;
+      setHeaderProjectName(uploadedFileName, transcript.duration_ms);
+
+      // Initialize speaker names
+      speakerNames = {};
+      for (const s of transcript.speakers) {
+        speakerNames[s] = s;
+      }
+
+      renderEditor();
+      showSection(editorSection);
+      initAudioPlayer();
+
+      // Auto-save as a new project
+      await autoCreateProject();
+
+    } catch (err) {
+      // If cancelled, silently return to home
+      if (err.message === 'CANCELLED' || (err.name === 'AbortError' && _userCancelled)) {
+        _userCancelled = false;
+        showSection(uploadSection);
+        return;
+      }
+      showSection(uploadSection);
+      uploadError.textContent = err.message;
+      uploadError.style.display = 'block';
+    } finally {
+      activeTranscriptionController = null;
+      cancelBtn.style.display = 'none';
+    }
+  }
+
+  // ---- Cancel transcription ----
+  document.getElementById('cancel-transcription-btn').addEventListener('click', async () => {
+    const cancelBtn = document.getElementById('cancel-transcription-btn');
+    cancelBtn.disabled = true;
+    cancelBtn.textContent = 'Cancelling\u2026';
+
+    // Tell the backend to stop
+    try { await fetch('/api/transcribe/cancel', { method: 'POST' }); } catch (e) { /* ignore */ }
+
+    // Abort the SSE fetch so the frontend doesn't wait
+    _userCancelled = true;
+    if (activeTranscriptionController) {
+      activeTranscriptionController.abort();
+    }
+  });
+
+  // ---- Editor rendering ----
+  function renderEditor() {
+    renderSpeakerRenameBar();
+    renderUtterances();
+  }
+
+  function renderSpeakerRenameBar() {
+    speakerRenameBar.style.display = 'block';
+    speakerRenameList.innerHTML = '';
+
+    for (const raw of transcript.speakers) {
+      const row = document.createElement('div');
+      row.className = 'speaker-rename-row';
+
+      const dot = document.createElement('span');
+      dot.className = 'speaker-color-dot';
+      dot.style.background = speakerColor(raw);
+
+      const label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = raw;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = speakerNames[raw];
+      input.placeholder = 'Enter name';
+      input.addEventListener('input', () => {
+        speakerNames[raw] = input.value || raw;
+        updateSpeakerLabels();
+      });
+
+      row.appendChild(dot);
+      row.appendChild(label);
+      row.appendChild(input);
+      speakerRenameList.appendChild(row);
+    }
+  }
+
+  function updateSpeakerLabels() {
+    document.querySelectorAll('.speaker-select').forEach(sel => {
+      for (const opt of sel.options) {
+        opt.textContent = speakerNames[opt.value] || opt.value;
+      }
+    });
+  }
+
+  // Get the display words for an utterance.
+  // Uses the words array if available, otherwise splits text by whitespace.
+  function getDisplayWords(utt) {
+    if (utt.words && utt.words.length > 0) {
+      return utt.words.map(w => w.text);
+    }
+    return utt.text.split(/\s+/).filter(w => w.length > 0);
+  }
+
+  // Remove speakers that no longer have any utterances
+  function pruneOrphanedSpeakers() {
+    const activeSpeakers = new Set(transcript.utterances.map(u => u.speaker));
+    const removed = transcript.speakers.filter(s => !activeSpeakers.has(s));
+    if (removed.length === 0) return false;
+    transcript.speakers = transcript.speakers.filter(s => activeSpeakers.has(s));
+    for (const s of removed) {
+      delete speakerNames[s];
+    }
+    return true; // speakers changed — caller should rebuild rename bar
+  }
+
+  function renderUtterances() {
+    const speakersChanged = pruneOrphanedSpeakers();
+    if (speakersChanged) renderSpeakerRenameBar();
+    utteranceList.innerHTML = '';
+    exportConfirmation.style.display = 'none';
+    selectedSegments.clear();
+    updateClipBadge();
+
+    for (let i = 0; i < transcript.utterances.length; i++) {
+      const utt = transcript.utterances[i];
+
+      // Boundary controls between all adjacent blocks
+      if (i > 0) {
+        const ctrlRow = document.createElement('div');
+        ctrlRow.className = 'boundary-controls';
+
+        // ↑ button: move first word of this block up
+        const upBtn = document.createElement('button');
+        upBtn.className = 'shuttle-btn';
+        upBtn.innerHTML = '&#9650;'; // ▲
+        upBtn.title = 'Move word up';
+        upBtn.addEventListener('click', () => moveWordUp(i));
+        ctrlRow.appendChild(upBtn);
+
+        // Merge button (only for same-speaker adjacent blocks)
+        if (transcript.utterances[i-1].speaker === utt.speaker) {
+          const mergeBtn = document.createElement('button');
+          mergeBtn.className = 'merge-btn';
+          mergeBtn.textContent = 'Merge';
+          mergeBtn.addEventListener('click', () => mergeUtterance(i));
+          ctrlRow.appendChild(mergeBtn);
+        }
+
+        // ↓ button: move last word of above block down
+        const downBtn = document.createElement('button');
+        downBtn.className = 'shuttle-btn';
+        downBtn.innerHTML = '&#9660;'; // ▼
+        downBtn.title = 'Move word down';
+        downBtn.addEventListener('click', () => moveWordDown(i));
+        ctrlRow.appendChild(downBtn);
+
+        utteranceList.appendChild(ctrlRow);
+      }
+
+      utteranceList.appendChild(buildUtteranceBlock(i));
+    }
+
+    // Re-apply search highlights after re-render
+    if (searchIsOpen && searchInput.value.trim()) {
+      setTimeout(performSearch, 0);
+    }
+  }
+
+  function buildUtteranceBlock(i) {
+    const utt = transcript.utterances[i];
+    const block = document.createElement('div');
+    block.className = 'utterance-block';
+    if (selectedSegments.has(i)) block.classList.add('selected');
+    block.style.borderLeftColor = speakerColor(utt.speaker);
+    block.dataset.index = i;
+
+    // Header row
+    const header = document.createElement('div');
+    header.className = 'utterance-header';
+
+    // Speaker dropdown
+    const sel = document.createElement('select');
+    sel.className = 'speaker-select';
+    for (const s of transcript.speakers) {
+      const opt = document.createElement('option');
+      opt.value = s;
+      opt.textContent = speakerNames[s] || s;
+      if (s === utt.speaker) opt.selected = true;
+      sel.appendChild(opt);
+    }
+    // "+ New Speaker" option
+    const newOpt = document.createElement('option');
+    newOpt.value = '__new__';
+    newOpt.textContent = '+ New Speaker';
+    sel.appendChild(newOpt);
+
+    sel.addEventListener('change', () => {
+      if (sel.value === '__new__') {
+        addNewSpeakerToBlock(i);
+      } else {
+        transcript.utterances[i].speaker = sel.value;
+        block.style.borderLeftColor = speakerColor(sel.value);
+        renderUtterances();
+      }
+    });
+
+    // Timestamp (click to seek audio)
+    const ts = document.createElement('span');
+    ts.className = 'utterance-timestamp clickable';
+    ts.textContent = formatTimestamp(utt.start) + ' \u2013 ' + formatTimestamp(utt.end);
+    ts.title = 'Click to play from here';
+    ts.addEventListener('click', () => seekTo(utt.start));
+
+    // Split button (only if block has more than 1 word)
+    const splitBtn = document.createElement('button');
+    splitBtn.className = 'split-btn';
+    splitBtn.textContent = 'Split';
+    splitBtn.title = 'Split this block in half';
+    if (getDisplayWords(utt).length < 2) {
+      splitBtn.disabled = true;
+      splitBtn.style.opacity = '0.4';
+      splitBtn.style.cursor = 'default';
+    }
+    splitBtn.addEventListener('click', () => splitUtterance(i));
+
+    header.appendChild(sel);
+    header.appendChild(ts);
+    header.appendChild(splitBtn);
+
+    // Text area with word spans
+    const textDiv = document.createElement('div');
+    textDiv.className = 'utterance-text';
+    textDiv.title = 'Click to edit text';
+    renderWordSpans(textDiv, i);
+
+    // Selection checkbox for clip export
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'utterance-checkbox';
+    checkbox.checked = selectedSegments.has(i);
+    checkbox.title = 'Select for clip export';
+    checkbox.addEventListener('change', (e) => {
+      e.stopPropagation();
+      if (checkbox.checked) {
+        selectedSegments.add(i);
+        block.classList.add('selected');
+      } else {
+        selectedSegments.delete(i);
+        block.classList.remove('selected');
+      }
+      updateClipBadge();
+    });
+    checkbox.addEventListener('click', (e) => e.stopPropagation());
+
+    // Play icon that appears on hover — visual affordance for click-to-seek
+    const playHint = document.createElement('span');
+    playHint.className = 'block-play-hint';
+    playHint.innerHTML = '&#9654;';
+    header.insertBefore(checkbox, sel);
+    header.insertBefore(playHint, sel);
+
+    block.appendChild(header);
+    block.appendChild(textDiv);
+
+    // Click anywhere on the block to seek audio (except interactive elements)
+    block.addEventListener('click', (e) => {
+      // Don't seek when clicking interactive children
+      if (e.target.closest('select, button, input, .utterance-text')) return;
+      seekTo(utt.start);
+    });
+
+    return block;
+  }
+
+  // Render word spans into the text div (view mode)
+  function renderWordSpans(textDiv, uttIndex) {
+    const utt = transcript.utterances[uttIndex];
+    const words = getDisplayWords(utt);
+    textDiv.innerHTML = '';
+
+    for (let w = 0; w < words.length; w++) {
+      const wordSpan = document.createElement('span');
+      wordSpan.className = 'word';
+      wordSpan.textContent = words[w];
+      textDiv.appendChild(wordSpan);
+
+      // Space between words
+      if (w < words.length - 1) {
+        textDiv.appendChild(document.createTextNode(' '));
+      }
+    }
+
+    // Click on text area enters edit mode
+    textDiv.addEventListener('click', () => {
+      enterEditMode(textDiv, uttIndex);
+    });
+  }
+
+  // Enter edit mode: replace word spans with contentEditable plain text
+  function enterEditMode(textDiv, uttIndex) {
+    if (textDiv.classList.contains('editing')) return;
+
+    const utt = transcript.utterances[uttIndex];
+    textDiv.classList.add('editing');
+    textDiv.contentEditable = 'true';
+    textDiv.textContent = utt.text;
+    textDiv.focus();
+
+    // Place cursor at click position — use a short delay so focus settles
+    const exitEdit = () => {
+      textDiv.removeEventListener('blur', exitEdit);
+      const newText = textDiv.textContent.trim();
+      if (newText !== utt.text) {
+        utt.text = newText;
+        // Rebuild words array from edited text (timestamps become approximate)
+        rebuildWordsFromText(utt);
+      }
+      textDiv.contentEditable = 'false';
+      textDiv.classList.remove('editing');
+      renderWordSpans(textDiv, uttIndex);
+      // Re-apply search highlights after exiting edit mode
+      if (searchIsOpen && searchInput.value.trim()) {
+        setTimeout(performSearch, 0);
+      }
+    };
+
+    textDiv.addEventListener('blur', exitEdit);
+  }
+
+  // Rebuild the words array from plain text after editing.
+  // Preserves original word timestamps where the word text still matches;
+  // otherwise creates entries without timestamps.
+  function rebuildWordsFromText(utt) {
+    const newTextWords = utt.text.split(/\s+/).filter(w => w.length > 0);
+    const oldWords = utt.words || [];
+    const newWords = [];
+
+    // Simple approach: if word count and content match, keep original timestamps.
+    // Otherwise, distribute timestamps proportionally.
+    if (newTextWords.length === oldWords.length &&
+        newTextWords.every((w, i) => w === oldWords[i].text)) {
+      // No change in words — keep original
+      return;
+    }
+
+    // Build new words array. Try to match words to originals for timestamps.
+    for (let i = 0; i < newTextWords.length; i++) {
+      // Estimate timestamp proportionally within the utterance
+      const ratio = newTextWords.length > 1 ? i / (newTextWords.length - 1) : 0;
+      const estimatedStart = utt.start + Math.round(ratio * (utt.end - utt.start));
+      const estimatedEnd = i < newTextWords.length - 1
+        ? utt.start + Math.round(((i + 1) / newTextWords.length) * (utt.end - utt.start))
+        : utt.end;
+
+      newWords.push({
+        text: newTextWords[i],
+        start: estimatedStart,
+        end: estimatedEnd,
+        speaker: utt.speaker,
+      });
+    }
+
+    utt.words = newWords;
+  }
+
+  // ---- Split ----
+  function splitUtterance(uttIndex) {
+    const utt = transcript.utterances[uttIndex];
+    const words = utt.words || [];
+    const displayWords = getDisplayWords(utt);
+
+    if (displayWords.length < 2) return;
+
+    // Split at the midpoint of the word list
+    const splitAt = Math.floor(displayWords.length / 2);
+    const afterWordIndex = splitAt - 1;
+
+    let firstEnd = utt.end;
+    let secondStart = utt.start;
+
+    if (words.length > 0 && words.length === displayWords.length) {
+      firstEnd = words[afterWordIndex].end;
+      secondStart = words[afterWordIndex + 1].start;
+    } else {
+      const ratio = splitAt / displayWords.length;
+      const mid = utt.start + Math.round(ratio * (utt.end - utt.start));
+      firstEnd = mid;
+      secondStart = mid;
+    }
+
+    const firstUtt = {
+      speaker: utt.speaker,
+      text: displayWords.slice(0, splitAt).join(' '),
+      start: utt.start,
+      end: firstEnd,
+      words: words.length === displayWords.length
+        ? words.slice(0, splitAt)
+        : displayWords.slice(0, splitAt).map(w => ({ text: w, start: utt.start, end: firstEnd, speaker: utt.speaker })),
+    };
+
+    const secondUtt = {
+      speaker: utt.speaker,
+      text: displayWords.slice(splitAt).join(' '),
+      start: secondStart,
+      end: utt.end,
+      words: words.length === displayWords.length
+        ? words.slice(splitAt)
+        : displayWords.slice(splitAt).map(w => ({ text: w, start: secondStart, end: utt.end, speaker: utt.speaker })),
+    };
+
+    transcript.utterances.splice(uttIndex, 1, firstUtt, secondUtt);
+    renderUtterances();
+  }
+
+  // ---- New speaker ----
+  function addNewSpeakerToBlock(uttIndex) {
+    // Find the next unused speaker letter
+    const existing = new Set(transcript.speakers);
+    let newLabel = 'A';
+    while (existing.has(newLabel)) {
+      newLabel = String.fromCharCode(newLabel.charCodeAt(0) + 1);
+    }
+
+    // Register the new speaker
+    transcript.speakers.push(newLabel);
+    speakerNames[newLabel] = newLabel;
+
+    // Assign this block to the new speaker
+    transcript.utterances[uttIndex].speaker = newLabel;
+    if (transcript.utterances[uttIndex].words) {
+      for (const w of transcript.utterances[uttIndex].words) {
+        w.speaker = newLabel;
+      }
+    }
+
+    // Re-render everything (rename bar + utterances, since dropdowns need the new speaker)
+    renderEditor();
+  }
+
+  // ---- Move word between blocks ----
+  function moveWordUp(index) {
+    // Move first word of block[index] to end of block[index-1]
+    if (index < 1) return;
+    const upper = transcript.utterances[index - 1];
+    const lower = transcript.utterances[index];
+    const lowerWords = lower.words || [];
+    const upperWords = upper.words || [];
+
+    if (lowerWords.length === 0) return;
+
+    const word = lowerWords.shift();
+    word.speaker = upper.speaker;
+    upperWords.push(word);
+
+    upper.words = upperWords;
+    upper.text = upperWords.map(w => w.text).join(' ');
+    upper.end = word.end;
+
+    if (lowerWords.length === 0) {
+      // Lower block is empty — remove it
+      transcript.utterances.splice(index, 1);
+    } else {
+      lower.words = lowerWords;
+      lower.text = lowerWords.map(w => w.text).join(' ');
+      lower.start = lowerWords[0].start;
+    }
+
+    renderUtterances();
+  }
+
+  function moveWordDown(index) {
+    // Move last word of block[index-1] to start of block[index]
+    if (index < 1) return;
+    const upper = transcript.utterances[index - 1];
+    const lower = transcript.utterances[index];
+    const upperWords = upper.words || [];
+    const lowerWords = lower.words || [];
+
+    if (upperWords.length === 0) return;
+
+    const word = upperWords.pop();
+    word.speaker = lower.speaker;
+    lowerWords.unshift(word);
+
+    lower.words = lowerWords;
+    lower.text = lowerWords.map(w => w.text).join(' ');
+    lower.start = word.start;
+
+    if (upperWords.length === 0) {
+      // Upper block is empty — remove it
+      transcript.utterances.splice(index - 1, 1);
+    } else {
+      upper.words = upperWords;
+      upper.text = upperWords.map(w => w.text).join(' ');
+      upper.end = upperWords[upperWords.length - 1].end;
+    }
+
+    renderUtterances();
+  }
+
+  // ---- Merge ----
+  function mergeUtterance(index) {
+    const prev = transcript.utterances[index - 1];
+    const curr = transcript.utterances[index];
+    prev.text = prev.text + ' ' + curr.text;
+    prev.end = curr.end;
+    if (prev.words && curr.words) {
+      prev.words = prev.words.concat(curr.words);
+    }
+    transcript.utterances.splice(index, 1);
+    renderUtterances();
+  }
+
+  // ---- Audio player ----
+
+  // Static player control listeners (set up once, delegate to audioElement)
+  playPauseBtn.addEventListener('click', togglePlayPause);
+  playerSeek.addEventListener('mousedown', () => { isSeeking = true; });
+  playerSeek.addEventListener('input', () => {
+    playerCurrentTime.textContent = formatTimestamp(playerSeek.value * 1000);
+  });
+  playerSeek.addEventListener('change', () => {
+    if (audioElement) audioElement.currentTime = parseFloat(playerSeek.value);
+    isSeeking = false;
+  });
+  playerSpeed.addEventListener('change', () => {
+    if (audioElement) audioElement.playbackRate = parseFloat(playerSpeed.value);
+  });
+
+  prevSegmentBtn.addEventListener('click', jumpToPrevSegment);
+  nextSegmentBtn.addEventListener('click', jumpToNextSegment);
+
+  function jumpToPrevSegment() {
+    if (!audioElement || !transcript) return;
+    const currentMs = audioElement.currentTime * 1000;
+    // Find the last utterance that starts before (currentMs - small buffer)
+    // The buffer prevents getting "stuck" at the very start of the current segment
+    const buffer = 500; // 0.5s grace
+    for (let i = transcript.utterances.length - 1; i >= 0; i--) {
+      if (transcript.utterances[i].start < currentMs - buffer) {
+        seekTo(transcript.utterances[i].start);
+        return;
+      }
+    }
+    // Already at or before the first segment — jump to start
+    seekTo(0);
+  }
+
+  function jumpToNextSegment() {
+    if (!audioElement || !transcript) return;
+    const currentMs = audioElement.currentTime * 1000;
+    for (let i = 0; i < transcript.utterances.length; i++) {
+      if (transcript.utterances[i].start > currentMs + 50) {
+        seekTo(transcript.utterances[i].start);
+        return;
+      }
+    }
+    // No next segment — stay put
+  }
+
+  function initAudioPlayer() {
+    destroyAudioPlayer();
+
+    audioElement = new Audio('/api/audio?t=' + Date.now());
+    audioElement.preload = 'auto';
+    audioElement.playbackRate = parseFloat(playerSpeed.value);
+
+    audioElement.addEventListener('loadedmetadata', () => {
+      playerDurationEl.textContent = formatTimestamp(audioElement.duration * 1000);
+      playerSeek.max = audioElement.duration;
+      playerSeek.value = 0;
+    });
+
+    audioElement.addEventListener('timeupdate', () => {
+      if (!isSeeking) {
+        playerCurrentTime.textContent = formatTimestamp(audioElement.currentTime * 1000);
+        playerSeek.value = audioElement.currentTime;
+      }
+      highlightCurrentUtterance();
+    });
+
+    audioElement.addEventListener('ended', () => {
+      playPauseBtn.innerHTML = '&#9654;';
+      clearUtteranceHighlight();
+    });
+
+    audioPlayerBar.classList.add('visible');
+  }
+
+  function destroyAudioPlayer() {
+    if (audioElement) {
+      audioElement.pause();
+      audioElement.src = '';
+      audioElement = null;
+    }
+    audioPlayerBar.classList.remove('visible');
+    playPauseBtn.innerHTML = '&#9654;';
+    playerCurrentTime.textContent = '0:00';
+    playerDurationEl.textContent = '0:00';
+    playerSeek.value = 0;
+    clearUtteranceHighlight();
+  }
+
+  function togglePlayPause() {
+    if (!audioElement) return;
+    if (audioElement.paused) {
+      audioElement.play();
+      playPauseBtn.innerHTML = '&#9646;&#9646;';
+    } else {
+      audioElement.pause();
+      playPauseBtn.innerHTML = '&#9654;';
+    }
+  }
+
+  function seekTo(timeMs) {
+    if (!audioElement) return;
+    audioElement.currentTime = timeMs / 1000;
+    playerCurrentTime.textContent = formatTimestamp(timeMs);
+    playerSeek.value = audioElement.currentTime;
+    if (audioElement.paused) {
+      audioElement.play();
+      playPauseBtn.innerHTML = '&#9646;&#9646;';
+    }
+  }
+
+  function highlightCurrentUtterance() {
+    if (!transcript || !audioElement) return;
+    const currentMs = audioElement.currentTime * 1000;
+
+    const blocks = utteranceList.querySelectorAll('.utterance-block');
+    for (const block of blocks) {
+      const idx = parseInt(block.dataset.index, 10);
+      const utt = transcript.utterances[idx];
+      if (utt && currentMs >= utt.start && currentMs <= utt.end) {
+        if (!block.classList.contains('playing')) {
+          clearUtteranceHighlight();
+          block.classList.add('playing');
+          scrollToBlock(block);
+        }
+        return;
+      }
+    }
+    // No matching utterance — clear highlight
+    clearUtteranceHighlight();
+  }
+
+  function scrollToBlock(block) {
+    // Only scroll if the block is outside the visible viewport
+    const rect = block.getBoundingClientRect();
+    const playerBarHeight = 60; // audio player bar
+    const headerHeight = 60;
+    if (rect.top < headerHeight || rect.bottom > window.innerHeight - playerBarHeight) {
+      block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  function clearUtteranceHighlight() {
+    utteranceList.querySelectorAll('.utterance-block.playing').forEach(el => {
+      el.classList.remove('playing');
+    });
+  }
+
+  // Keyboard shortcuts for audio player
+  document.addEventListener('keydown', (e) => {
+    // Don't intercept when editing text or in form fields
+    if (e.target.contentEditable === 'true' ||
+        e.target.tagName === 'INPUT' ||
+        e.target.tagName === 'TEXTAREA' ||
+        e.target.tagName === 'SELECT') return;
+    if (!audioElement) return;
+
+    if (e.code === 'Space') {
+      e.preventDefault();
+      togglePlayPause();
+    } else if (e.code === 'ArrowLeft' && e.shiftKey) {
+      e.preventDefault();
+      jumpToPrevSegment();
+    } else if (e.code === 'ArrowRight' && e.shiftKey) {
+      e.preventDefault();
+      jumpToNextSegment();
+    } else if (e.code === 'ArrowLeft') {
+      e.preventDefault();
+      audioElement.currentTime = Math.max(0, audioElement.currentTime - 5);
+    } else if (e.code === 'ArrowRight') {
+      e.preventDefault();
+      audioElement.currentTime = Math.min(audioElement.duration || 0, audioElement.currentTime + 5);
+    }
+  });
+
+  // ---- Projects ----
+
+  async function loadProjectsList() {
+    try {
+      const resp = await fetch('/api/projects');
+      if (!resp.ok) return;
+      const projects = await resp.json();
+
+      if (projects.length === 0) {
+        projectsSection.style.display = 'none';
+        return;
+      }
+
+      projectsSection.style.display = 'block';
+      projectsList.innerHTML = '';
+
+      for (const p of projects) {
+        const card = document.createElement('div');
+        card.className = 'project-card';
+
+        const info = document.createElement('div');
+        info.className = 'project-card-info';
+
+        const name = document.createElement('div');
+        name.className = 'project-card-name';
+        name.textContent = p.name;
+
+        const meta = document.createElement('div');
+        meta.className = 'project-card-meta';
+        const duration = p.duration_ms ? formatTimestamp(p.duration_ms) : '';
+        let speakerText = '';
+        if (p.speakers && p.speakers.length) {
+          speakerText = p.speakers.length + ' speaker' + (p.speakers.length !== 1 ? 's' : '');
+          // Add named speakers (skip single-letter placeholders), sorted by duration spoken
+          const names = p.speaker_names || {};
+          const durations = p.speaker_durations || {};
+          const namedSpeakers = p.speakers
+            .map(s => names[s] || s)
+            .filter(n => n.length > 1)
+            .sort((a, b) => {
+              const keyA = Object.keys(names).find(k => names[k] === a) || a;
+              const keyB = Object.keys(names).find(k => names[k] === b) || b;
+              return (durations[keyB] || 0) - (durations[keyA] || 0);
+            });
+          if (namedSpeakers.length) speakerText += ' (' + namedSpeakers.join(', ') + ')';
+        }
+        meta.textContent = [duration, speakerText].filter(Boolean).join('  ·  ');
+
+        info.appendChild(name);
+        info.appendChild(meta);
+
+        const actions = document.createElement('div');
+        actions.className = 'project-card-actions';
+
+        const renBtn = document.createElement('button');
+        renBtn.className = 'project-rename-btn';
+        renBtn.textContent = 'Rename';
+        renBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          renameProjectFromCard(p.id, p.name, name);
+        });
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'project-delete-btn';
+        delBtn.textContent = 'Delete';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteProject(p.id, p.name);
+        });
+
+        actions.appendChild(renBtn);
+        actions.appendChild(delBtn);
+
+        card.appendChild(info);
+        card.appendChild(actions);
+        card.addEventListener('click', () => openProject(p.id));
+        projectsList.appendChild(card);
+      }
+    } catch (err) {
+      console.error('Failed to load projects:', err);
+    }
+  }
+
+  async function openProject(id) {
+    try {
+      const resp = await fetch('/api/projects/' + encodeURIComponent(id));
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ detail: 'Failed to load project' }));
+        alert(err.detail || 'Failed to load project');
+        return;
+      }
+
+      const project = await resp.json();
+
+      // Restore transcript state
+      transcript = {
+        utterances: project.utterances,
+        speakers: project.speakers,
+        duration_ms: project.duration_ms,
+      };
+
+      speakerNames = project.speaker_names || {};
+      // Ensure all speakers have a name entry
+      for (const s of transcript.speakers) {
+        if (!speakerNames[s]) speakerNames[s] = s;
+      }
+
+      currentProjectId = project.id;
+      sessionStorage.setItem('currentProjectId', currentProjectId);
+      uploadedFileName = project.name;
+      setHeaderProjectName(project.name, project.duration_ms);
+
+      renderEditor();
+      showSection(editorSection);
+      saveBtn.style.display = '';
+      initAudioPlayer();
+    } catch (err) {
+      alert('Failed to load project: ' + err.message);
+    }
+  }
+
+  function setHeaderProjectName(name, durationMs) {
+    headerInfo.innerHTML = '';
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'header-info-name';
+    nameSpan.textContent = name;
+    nameSpan.title = 'Click to rename';
+    nameSpan.addEventListener('click', () => startHeaderRename(nameSpan, durationMs));
+
+    const durSpan = document.createElement('span');
+    durSpan.className = 'header-info-duration';
+    durSpan.textContent = '  ·  ' + formatTimestamp(durationMs);
+
+    headerInfo.appendChild(nameSpan);
+    headerInfo.appendChild(durSpan);
+  }
+
+  function startHeaderRename(nameSpan, durationMs) {
+    if (!currentProjectId) return;
+    const currentName = nameSpan.textContent;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'header-info-input';
+    input.value = currentName;
+    input.style.width = Math.max(120, nameSpan.offsetWidth + 20) + 'px';
+
+    nameSpan.replaceWith(input);
+    input.focus();
+    input.select();
+
+    let committed = false;
+    async function commit() {
+      if (committed) return;
+      committed = true;
+      const newName = input.value.trim();
+      if (newName && newName !== currentName) {
+        const updated = await renameProjectAPI(currentProjectId, newName);
+        if (updated) {
+          uploadedFileName = updated.name;
+          setHeaderProjectName(updated.name, durationMs);
+          return;
+        }
+      }
+      // Revert on cancel or failure
+      setHeaderProjectName(currentName, durationMs);
+    }
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); }
+      if (e.key === 'Escape') { e.preventDefault(); committed = true; setHeaderProjectName(currentName, durationMs); }
+    });
+    input.addEventListener('blur', () => commit());
+  }
+
+  async function renameProjectAPI(id, newName) {
+    try {
+      const resp = await fetch('/api/projects/' + encodeURIComponent(id) + '/rename', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName }),
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ detail: 'Rename failed' }));
+        alert(err.detail || 'Rename failed');
+        return null;
+      }
+      return await resp.json();
+    } catch (err) {
+      alert('Rename failed: ' + err.message);
+      return null;
+    }
+  }
+
+  async function renameProjectFromCard(id, oldName, nameEl) {
+    const newName = prompt('Rename project:', oldName);
+    if (!newName || newName.trim() === '' || newName.trim() === oldName) return;
+    const updated = await renameProjectAPI(id, newName.trim());
+    if (updated) {
+      nameEl.textContent = updated.name;
+      // If this project is currently open, update header too
+      if (currentProjectId === id) {
+        uploadedFileName = updated.name;
+        if (transcript) setHeaderProjectName(updated.name, transcript.duration_ms);
+      }
+    }
+  }
+
+  async function deleteProject(id, name) {
+    if (!confirm('Delete project "' + name + '"? This cannot be undone.')) return;
+
+    try {
+      const resp = await fetch('/api/projects/' + encodeURIComponent(id), {
+        method: 'DELETE',
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ detail: 'Delete failed' }));
+        alert(err.detail || 'Delete failed');
+        return;
+      }
+
+      // If we had this project open, clear state
+      if (currentProjectId === id) {
+        currentProjectId = null;
+        sessionStorage.removeItem('currentProjectId');
+        saveBtn.style.display = 'none';
+      }
+
+      loadProjectsList();
+    } catch (err) {
+      alert('Delete failed: ' + err.message);
+    }
+  }
+
+  async function autoCreateProject() {
+    try {
+      const projectName = uploadedFileName || 'Untitled';
+      const resp = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: projectName,
+          transcript: {
+            utterances: transcript.utterances,
+            speakers: transcript.speakers,
+            duration_ms: transcript.duration_ms,
+          },
+          speaker_names: speakerNames,
+        }),
+      });
+
+      if (!resp.ok) {
+        console.error('Failed to auto-save project');
+        return;
+      }
+
+      const project = await resp.json();
+      currentProjectId = project.id;
+      sessionStorage.setItem('currentProjectId', currentProjectId);
+      saveBtn.style.display = '';
+    } catch (err) {
+      console.error('Failed to auto-save project:', err);
+    }
+  }
+
+  async function saveProject() {
+    if (!currentProjectId || !transcript) return;
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+
+    try {
+      const resp = await fetch('/api/projects/' + encodeURIComponent(currentProjectId), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          utterances: transcript.utterances,
+          speaker_names: speakerNames,
+          speakers: transcript.speakers,
+        }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ detail: 'Save failed' }));
+        alert(err.detail || 'Save failed');
+        return;
+      }
+
+      // Show toast
+      saveToast.classList.add('visible');
+      setTimeout(() => saveToast.classList.remove('visible'), 2000);
+    } catch (err) {
+      alert('Save failed: ' + err.message);
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save';
+    }
+  }
+
+  saveBtn.addEventListener('click', saveProject);
+
+  // ---- Navigation ----
+  homeBtn.addEventListener('click', () => {
+    if (searchIsOpen) closeSearch();
+    destroyAudioPlayer();
+    showSection(uploadSection);
+  });
+
+  newBtn.addEventListener('click', () => {
+    if (searchIsOpen) closeSearch();
+    transcript = null;
+    speakerNames = {};
+    currentProjectId = null;
+    sessionStorage.removeItem('currentProjectId');
+    headerInfo.textContent = '';
+    fileInput.value = '';
+    saveBtn.style.display = 'none';
+    destroyAudioPlayer();
+    showSection(uploadSection);
+  });
+
+  // ---- Export ----
+  const pickFolderBtn = document.getElementById('pick-folder-btn');
+
+  exportBtn.addEventListener('click', () => {
+    exportFilename.value = uploadedFileName;
+    exportDir.value = (cachedSettings && cachedSettings.export_folder) || '~/Documents/Transcripts';
+    exportModal.classList.add('visible');
+    setTimeout(() => {
+      exportFilename.focus();
+      exportFilename.setSelectionRange(0, exportFilename.value.length);
+    }, 50);
+  });
+
+  pickFolderBtn.addEventListener('click', async () => {
+    pickFolderBtn.disabled = true;
+    pickFolderBtn.textContent = 'Opening...';
+    try {
+      const resp = await fetch('/api/pick-folder');
+      const data = await resp.json();
+      if (data.folder) {
+        exportDir.value = data.folder;
+      }
+    } catch (err) {
+      // silently ignore — user can still type manually
+    }
+    pickFolderBtn.disabled = false;
+    pickFolderBtn.textContent = 'Browse...';
+  });
+
+  exportCancel.addEventListener('click', () => {
+    exportModal.classList.remove('visible');
+  });
+
+  exportModal.addEventListener('click', (e) => {
+    if (e.target === exportModal) exportModal.classList.remove('visible');
+  });
+
+  exportConfirm.addEventListener('click', async () => {
+    const filename = exportFilename.value.trim();
+    if (!filename) {
+      exportFilename.style.borderColor = '#e03131';
+      return;
+    }
+    exportFilename.style.borderColor = '';
+    exportModal.classList.remove('visible');
+
+    const uttData = transcript.utterances.map(u => ({
+      speaker: u.speaker,
+      text: u.text,
+      start: u.start,
+      end: u.end,
+    }));
+
+    try {
+      const resp = await fetch('/api/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: filename,
+          duration_ms: transcript.duration_ms,
+          utterances: uttData,
+          speaker_names: speakerNames,
+          output_dir: exportDir.value.trim() || null,
+        }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ detail: 'Export failed' }));
+        alert('Export failed: ' + (err.detail || 'Unknown error'));
+        return;
+      }
+
+      const result = await resp.json();
+      exportPath.textContent = result.file_path;
+      exportConfirmation.style.display = 'block';
+    } catch (err) {
+      alert('Export failed: ' + err.message);
+    }
+  });
+
+  // ---- Clip Export ----
+
+  function updateClipBadge() {
+    const existing = clipExportBtn.querySelector('.clip-badge');
+    if (existing) existing.remove();
+    if (selectedSegments.size > 0) {
+      const badge = document.createElement('span');
+      badge.className = 'clip-badge';
+      badge.textContent = selectedSegments.size;
+      clipExportBtn.appendChild(badge);
+    }
+  }
+
+  function openClipExportModal() {
+    const indices = Array.from(selectedSegments).sort((a, b) => a - b);
+    let totalDurationMs = 0;
+    const lines = [];
+    for (const idx of indices) {
+      const utt = transcript.utterances[idx];
+      const speaker = speakerNames[utt.speaker] || utt.speaker;
+      const durMs = utt.end - utt.start;
+      totalDurationMs += durMs;
+      lines.push(speaker + ': ' + formatTimestamp(utt.start) + ' \u2013 ' + formatTimestamp(utt.end) + ' (' + formatTimestamp(durMs) + ')');
+    }
+
+    clipExportTitle.textContent = 'Export ' + indices.length + ' segment' + (indices.length !== 1 ? 's' : '') + ' as audio clip';
+    clipExportSummary.innerHTML = lines.map(l => '<div>' + l + '</div>').join('') +
+      '<div style="margin-top:8px;font-weight:600;">Total: ' + formatTimestamp(totalDurationMs) + '</div>';
+
+    clipExportFilename.value = (uploadedFileName || 'clip') + '-clip';
+    clipExportDirInput.value = (cachedSettings && cachedSettings.export_folder) || '~/Documents/Transcripts';
+    clipExportForm.style.display = 'block';
+    clipExportResult.style.display = 'none';
+    clipExportConfirm.disabled = false;
+    clipExportConfirm.textContent = 'Export';
+    clipExportModal.classList.add('visible');
+
+    setTimeout(() => {
+      clipExportFilename.focus();
+      clipExportFilename.setSelectionRange(0, clipExportFilename.value.length);
+    }, 50);
+  }
+
+  clipExportBtn.addEventListener('click', () => {
+    if (selectedSegments.size === 0) {
+      alert('Select segments to export by checking the boxes next to utterances.');
+      return;
+    }
+    openClipExportModal();
+  });
+
+  clipExportCancel.addEventListener('click', () => {
+    clipExportModal.classList.remove('visible');
+  });
+
+  clipExportModal.addEventListener('click', (e) => {
+    if (e.target === clipExportModal) clipExportModal.classList.remove('visible');
+  });
+
+  clipPickFolderBtn.addEventListener('click', async () => {
+    clipPickFolderBtn.disabled = true;
+    clipPickFolderBtn.textContent = 'Opening...';
+    try {
+      const resp = await fetch('/api/pick-folder');
+      const data = await resp.json();
+      if (data.folder) clipExportDirInput.value = data.folder;
+    } catch (err) { /* ignore */ }
+    clipPickFolderBtn.disabled = false;
+    clipPickFolderBtn.textContent = 'Browse...';
+  });
+
+  clipExportConfirm.addEventListener('click', async () => {
+    const filename = clipExportFilename.value.trim();
+    if (!filename) {
+      clipExportFilename.style.borderColor = '#e03131';
+      return;
+    }
+    clipExportFilename.style.borderColor = '';
+
+    const indices = Array.from(selectedSegments).sort((a, b) => a - b);
+    const segments = indices.map(idx => ({
+      start_ms: transcript.utterances[idx].start,
+      end_ms: transcript.utterances[idx].end,
+    }));
+
+    clipExportConfirm.disabled = true;
+    clipExportConfirm.textContent = 'Exporting...';
+
+    try {
+      const resp = await fetch('/api/export-clip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          segments: segments,
+          filename: filename,
+          folder: clipExportDirInput.value.trim() || null,
+        }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ detail: 'Export failed' }));
+        alert('Clip export failed: ' + (err.detail || 'Unknown error'));
+        return;
+      }
+
+      const result = await resp.json();
+      clipExportPath.textContent = result.file_path;
+      clipExportForm.style.display = 'none';
+      clipExportResult.style.display = 'block';
+    } catch (err) {
+      alert('Clip export failed: ' + err.message);
+    } finally {
+      clipExportConfirm.disabled = false;
+      clipExportConfirm.textContent = 'Export';
+    }
+  });
+
+  clipExportOk.addEventListener('click', () => {
+    clipExportModal.classList.remove('visible');
+  });
+
+  // ---- Search & Replace ----
+  let searchMatches = [];       // { uttIndex, wordIndex, phraseLength, spans[] }
+  let currentMatchIndex = -1;
+  let searchIsOpen = false;
+  let replaceIsOpen = false;
+
+  const searchBar = document.getElementById('search-bar');
+  const searchInput = document.getElementById('search-input');
+  const searchCount = document.getElementById('search-count');
+  const searchPrevBtn = document.getElementById('search-prev-btn');
+  const searchNextBtn = document.getElementById('search-next-btn');
+  const searchCloseBtn = document.getElementById('search-close-btn');
+  const replaceRow = document.getElementById('replace-row');
+  const replaceInput = document.getElementById('replace-input');
+  const replaceBtn = document.getElementById('replace-btn');
+  const replaceAllBtn = document.getElementById('replace-all-btn');
+
+  function openSearch(showReplace) {
+    searchIsOpen = true;
+    replaceIsOpen = !!showReplace;
+    searchBar.classList.add('visible');
+    replaceRow.style.display = showReplace ? 'flex' : 'none';
+    searchIconBtn.classList.toggle('active', !showReplace);
+    replaceIconBtn.classList.toggle('active', !!showReplace);
+    searchInput.focus();
+    searchInput.select();
+    if (searchInput.value.trim()) performSearch();
+  }
+
+  function closeSearch() {
+    searchIsOpen = false;
+    replaceIsOpen = false;
+    searchBar.classList.remove('visible');
+    searchIconBtn.classList.remove('active');
+    replaceIconBtn.classList.remove('active');
+    clearSearchHighlights();
+    searchMatches = [];
+    currentMatchIndex = -1;
+    searchCount.textContent = '';
+  }
+
+  function clearSearchHighlights() {
+    document.querySelectorAll('.word.search-match, .word.search-match-current').forEach(el => {
+      el.classList.remove('search-match', 'search-match-current');
+    });
+  }
+
+  function performSearch() {
+    clearSearchHighlights();
+    searchMatches = [];
+    currentMatchIndex = -1;
+
+    const query = searchInput.value.trim().toLowerCase();
+    if (!query) { searchCount.textContent = ''; return; }
+
+    const queryWords = query.split(/\s+/);
+    const blocks = utteranceList.querySelectorAll('.utterance-block');
+
+    blocks.forEach(block => {
+      const uttIndex = parseInt(block.dataset.index, 10);
+      const textDiv = block.querySelector('.utterance-text');
+      if (!textDiv || textDiv.classList.contains('editing')) return;
+
+      const spanArray = Array.from(textDiv.querySelectorAll('.word'));
+
+      for (let w = 0; w <= spanArray.length - queryWords.length; w++) {
+        let match = true;
+        for (let q = 0; q < queryWords.length; q++) {
+          // Strip leading/trailing punctuation for comparison (keeps contractions intact)
+          const spanText = spanArray[w + q].textContent.toLowerCase().replace(/^\W+|\W+$/g, '');
+          const queryWord = queryWords[q].replace(/^\W+|\W+$/g, '');
+          if (spanText !== queryWord) { match = false; break; }
+        }
+        if (match) {
+          const matchSpans = spanArray.slice(w, w + queryWords.length);
+          matchSpans.forEach(s => s.classList.add('search-match'));
+          searchMatches.push({
+            uttIndex: uttIndex,
+            wordIndex: w,
+            phraseLength: queryWords.length,
+            spans: matchSpans,
+          });
+        }
+      }
+    });
+
+    if (searchMatches.length > 0) {
+      currentMatchIndex = 0;
+      highlightCurrentMatch();
+    }
+    updateSearchCount();
+  }
+
+  function highlightCurrentMatch() {
+    // Revert all current markers to standard yellow
+    document.querySelectorAll('.word.search-match-current').forEach(el => {
+      el.classList.remove('search-match-current');
+      el.classList.add('search-match');
+    });
+
+    if (currentMatchIndex < 0 || currentMatchIndex >= searchMatches.length) return;
+
+    const match = searchMatches[currentMatchIndex];
+    for (const span of match.spans) {
+      span.classList.remove('search-match');
+      span.classList.add('search-match-current');
+    }
+
+    // Scroll into view
+    const firstSpan = match.spans[0];
+    const rect = firstSpan.getBoundingClientRect();
+    const topThreshold = 130; // header + search bar
+    const bottomThreshold = window.innerHeight - 90; // player bar
+    if (rect.top < topThreshold || rect.bottom > bottomThreshold) {
+      firstSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    updateSearchCount();
+  }
+
+  function updateSearchCount() {
+    if (searchMatches.length === 0) {
+      searchCount.textContent = searchInput.value.trim() ? 'No results' : '';
+    } else {
+      searchCount.textContent = (currentMatchIndex + 1) + ' of ' + searchMatches.length;
+    }
+  }
+
+  function goToNextMatch() {
+    if (searchMatches.length === 0) return;
+    currentMatchIndex = (currentMatchIndex + 1) % searchMatches.length;
+    highlightCurrentMatch();
+  }
+
+  function goToPrevMatch() {
+    if (searchMatches.length === 0) return;
+    currentMatchIndex = (currentMatchIndex - 1 + searchMatches.length) % searchMatches.length;
+    highlightCurrentMatch();
+  }
+
+  // ---- Replace functions ----
+
+  function reRenderUtteranceText(uttIndex) {
+    const block = utteranceList.querySelector('.utterance-block[data-index="' + uttIndex + '"]');
+    if (!block) return;
+    const textDiv = block.querySelector('.utterance-text');
+    if (!textDiv) return;
+    // Clone to avoid stacking click-to-edit listeners
+    const newTextDiv = textDiv.cloneNode(false);
+    newTextDiv.className = 'utterance-text';
+    newTextDiv.title = 'Click to edit text';
+    renderWordSpans(newTextDiv, uttIndex);
+    textDiv.parentNode.replaceChild(newTextDiv, textDiv);
+  }
+
+  function replaceCurrent() {
+    if (currentMatchIndex < 0 || currentMatchIndex >= searchMatches.length) return;
+
+    const match = searchMatches[currentMatchIndex];
+    const utt = transcript.utterances[match.uttIndex];
+    const words = getDisplayWords(utt);
+    const replaceText = replaceInput.value;
+    const replaceWords = replaceText.split(/\s+/).filter(w => w.length > 0);
+
+    words.splice(match.wordIndex, match.phraseLength, ...replaceWords);
+    utt.text = words.join(' ');
+    rebuildWordsFromText(utt);
+    reRenderUtteranceText(match.uttIndex);
+
+    // Re-run search; try to stay near the same position
+    const prevIndex = currentMatchIndex;
+    performSearch();
+    if (searchMatches.length > 0) {
+      currentMatchIndex = Math.min(prevIndex, searchMatches.length - 1);
+      highlightCurrentMatch();
+    }
+  }
+
+  function replaceAll() {
+    if (searchMatches.length === 0) return;
+
+    const replaceText = replaceInput.value;
+    const replaceWords = replaceText.split(/\s+/).filter(w => w.length > 0);
+
+    // Group by uttIndex
+    const byUtt = {};
+    for (const m of searchMatches) {
+      if (!byUtt[m.uttIndex]) byUtt[m.uttIndex] = [];
+      byUtt[m.uttIndex].push(m);
+    }
+
+    for (const uttIndexStr of Object.keys(byUtt)) {
+      const uttIndex = parseInt(uttIndexStr, 10);
+      const utt = transcript.utterances[uttIndex];
+      const words = getDisplayWords(utt);
+      // Process in reverse so indices stay valid
+      const uttMatches = byUtt[uttIndex].sort((a, b) => b.wordIndex - a.wordIndex);
+      for (const m of uttMatches) {
+        words.splice(m.wordIndex, m.phraseLength, ...replaceWords);
+      }
+      utt.text = words.join(' ');
+      rebuildWordsFromText(utt);
+      reRenderUtteranceText(uttIndex);
+    }
+
+    performSearch();
+  }
+
+  // ---- Search event listeners ----
+
+  let searchDebounceTimer = null;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(performSearch, 200);
+  });
+
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.shiftKey ? goToPrevMatch() : goToNextMatch();
+    }
+    if (e.key === 'Escape') { e.preventDefault(); closeSearch(); }
+  });
+
+  replaceInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); replaceCurrent(); }
+    if (e.key === 'Escape') { e.preventDefault(); closeSearch(); }
+  });
+
+  searchNextBtn.addEventListener('click', goToNextMatch);
+  searchPrevBtn.addEventListener('click', goToPrevMatch);
+  searchCloseBtn.addEventListener('click', closeSearch);
+  replaceBtn.addEventListener('click', replaceCurrent);
+  replaceAllBtn.addEventListener('click', replaceAll);
+
+  // Header icon buttons for search/replace
+  searchIconBtn.addEventListener('click', () => openSearch(false));
+  replaceIconBtn.addEventListener('click', () => openSearch(true));
+
+  // Global keyboard shortcut for Cmd/Ctrl+F and Cmd/Ctrl+H
+  document.addEventListener('keydown', (e) => {
+    const mod = navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? e.metaKey : e.ctrlKey;
+    if (mod && e.key === 'f') {
+      e.preventDefault();
+      if (editorSection.style.display !== 'none') openSearch(false);
+      return;
+    }
+    if (mod && e.key === 'h') {
+      e.preventDefault();
+      if (editorSection.style.display !== 'none') openSearch(true);
+      return;
+    }
+    if (e.key === 'Escape' && searchIsOpen) {
+      e.preventDefault();
+      closeSearch();
+    }
+  });
+
+  // ---- Settings ----
+  const settingsBtn = document.getElementById('settings-btn');
+  const settingsModal = document.getElementById('settings-modal');
+  const settingsCancel = document.getElementById('settings-cancel');
+  const settingsSave = document.getElementById('settings-save');
+  const settingsExportFolder = document.getElementById('settings-export-folder');
+  const settingsPickFolderBtn = document.getElementById('settings-pick-folder-btn');
+  const settingsDefaultEngine = document.getElementById('settings-default-engine');
+  const settingsAssemblyaiKey = document.getElementById('settings-assemblyai-key');
+  const settingsAssemblyaiModel = document.getElementById('settings-assemblyai-model');
+  const settingsWhisperModel = document.getElementById('settings-whisper-model');
+
+  let cachedSettings = null;
+
+  async function loadSettings() {
+    try {
+      const resp = await fetch('/api/settings');
+      if (!resp.ok) return null;
+      cachedSettings = await resp.json();
+      return cachedSettings;
+    } catch (err) {
+      console.error('Failed to load settings:', err);
+      return null;
+    }
+  }
+
+  function populateSettingsForm(settings) {
+    settingsExportFolder.value = settings.export_folder || '~/Documents/Transcripts';
+    settingsDefaultEngine.value = settings.default_engine || 'local';
+    settingsAssemblyaiKey.value = settings.assemblyai_api_key || '';
+    settingsAssemblyaiModel.value = settings.assemblyai_model || 'universal-3-pro';
+
+    // Populate Whisper model dropdown
+    settingsWhisperModel.innerHTML = '';
+    const options = settings.whisper_model_options || [];
+    for (const [value, label] of options) {
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = label;
+      if (value === settings.whisper_model) opt.selected = true;
+      settingsWhisperModel.appendChild(opt);
+    }
+  }
+
+  function applyDefaultEngine() {
+    if (cachedSettings && cachedSettings.default_engine) {
+      const radio = document.querySelector(
+        'input[name="engine"][value="' + cachedSettings.default_engine + '"]'
+      );
+      if (radio) radio.checked = true;
+    }
+  }
+
+  settingsBtn.addEventListener('click', async () => {
+    const settings = await loadSettings();
+    if (settings) populateSettingsForm(settings);
+    settingsModal.classList.add('visible');
+  });
+
+  settingsCancel.addEventListener('click', () => {
+    settingsModal.classList.remove('visible');
+  });
+
+  settingsModal.addEventListener('click', (e) => {
+    if (e.target === settingsModal) settingsModal.classList.remove('visible');
+  });
+
+  settingsPickFolderBtn.addEventListener('click', async () => {
+    settingsPickFolderBtn.disabled = true;
+    settingsPickFolderBtn.textContent = 'Opening...';
+    try {
+      const resp = await fetch('/api/pick-folder');
+      const data = await resp.json();
+      if (data.folder) settingsExportFolder.value = data.folder;
+    } catch (err) { /* ignore */ }
+    settingsPickFolderBtn.disabled = false;
+    settingsPickFolderBtn.textContent = 'Browse...';
+  });
+
+  settingsSave.addEventListener('click', async () => {
+    settingsSave.disabled = true;
+    settingsSave.textContent = 'Saving...';
+    try {
+      const resp = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          export_folder: settingsExportFolder.value.trim(),
+          default_engine: settingsDefaultEngine.value,
+          assemblyai_api_key: settingsAssemblyaiKey.value,
+          assemblyai_model: settingsAssemblyaiModel.value,
+          whisper_model: settingsWhisperModel.value,
+        }),
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ detail: 'Save failed' }));
+        alert('Settings save failed: ' + (err.detail || 'Unknown error'));
+        return;
+      }
+      cachedSettings = await resp.json();
+      settingsModal.classList.remove('visible');
+      applyDefaultEngine();
+
+      // Reuse save toast
+      saveToast.textContent = 'Settings saved';
+      saveToast.classList.add('visible');
+      setTimeout(() => {
+        saveToast.classList.remove('visible');
+        saveToast.textContent = 'Project saved';
+      }, 2000);
+    } catch (err) {
+      alert('Settings save failed: ' + err.message);
+    } finally {
+      settingsSave.disabled = false;
+      settingsSave.textContent = 'Save';
+    }
+  });
+
+
+  // ---- Initial load ----
+  // Load settings eagerly so defaults are available
+  loadSettings().then(() => applyDefaultEngine());
+
+  // If a project was open before refresh, restore it
+  const restoredProjectId = sessionStorage.getItem('currentProjectId');
+  if (restoredProjectId) {
+    openProject(restoredProjectId);
+  } else {
+    loadProjectsList();
+  }
+
+})();
+</script>
+</body>
+</html>

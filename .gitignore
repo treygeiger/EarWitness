@@ -1,0 +1,21 @@
+# Environment & secrets
+.env
+settings.json
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Uploads & temp
+tmp/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code
+.claude/

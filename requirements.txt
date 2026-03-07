@@ -1,0 +1,9 @@
+fastapi==0.115.6
+uvicorn==0.34.0
+python-multipart==0.0.20
+python-dotenv==1.0.1
+httpx==0.28.1
+
+# Local transcription engine (optional — needed for "Local" mode)
+mlx-whisper==0.4.3
+pyannote.audio==4.0.4
