@@ -103,17 +103,16 @@ Transcripts are exported as Markdown files with the following structure:
 
 ```
 **Date:** 2026-02-17
-**Attendees:** Trey, Abhishek
+**Attendees:** Trey, Joe
 **Duration:** 15 min
 
 ---
 
-
 ## Transcript
 
-[0:00] Trey: So let's talk about the comp plan...
+[0:00] Trey: So let's talk about the marketing plan...
 
-[2:14] Abhishek: Sure, I was thinking...
+[2:14] Joe: Sure, I was thinking...
 ```
 
 The date is extracted from the project name if it contains a `YYYY-MM-DD` pattern; otherwise it defaults to the export date.
