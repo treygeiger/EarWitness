@@ -69,8 +69,16 @@ def list_projects() -> list[dict]:
             # Skip corrupted projects
             continue
 
-    # Most recently modified first
-    projects.sort(key=lambda p: p.get("modified_at", ""), reverse=True)
+    # Most recent first — sort by date in project name (YYYY-MM-DD) when
+    # available, otherwise fall back to modified_at timestamp.
+    def _sort_key(p):
+        name = p.get("name", "")
+        match = re.match(r"(\d{4}-\d{2}-\d{2})", name)
+        if match:
+            return match.group(1)
+        return p.get("modified_at", "")
+
+    projects.sort(key=_sort_key, reverse=True)
     return projects
 
 

@@ -80,7 +80,6 @@ def build_transcript_md(
         "",
         "---",
         "",
-        "",
         "## Transcript",
         "",
     ]
